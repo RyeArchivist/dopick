@@ -1,0 +1,3 @@
+function auth(env,req){return req.headers.get('X-Admin-Key')===env.ADMIN_KEY}
+export async function onRequestGet({request,env}){if(!auth(env,request))return new Response('Unauthorized',{status:401});const {results}=await env.DB.prepare('SELECT * FROM requests ORDER BY id DESC').all();return Response.json(results)}
+export async function onRequestPost({request,env}){const d=await request.json();if(!d.product_name)return Response.json({ok:false},{status:400});await env.DB.prepare('INSERT INTO requests(type,product_name,product_url,message,contact) VALUES(?,?,?,?,?)').bind(d.type||'상품 등록 요청',d.product_name,d.product_url||'',d.message||'',d.contact||'').run();return Response.json({ok:true})}
